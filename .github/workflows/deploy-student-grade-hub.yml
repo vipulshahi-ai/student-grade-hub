@@ -1,0 +1,37 @@
+name: Deploy Student Grade Hub
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'student-grade-hub/site/**'
+      - '.github/workflows/deploy-student-grade-hub.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: student-grade-hub-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: student-grade-hub/site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
