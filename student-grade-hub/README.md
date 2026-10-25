@@ -31,5 +31,8 @@ The web app serves a student report by admission or enrollment number. Its JSONP
 - For a new weekly activity, add its row to `Activities`, create an `A## ...` tab using an existing activity tab as the header/roster template, then run sync. The script creates its missing `Student_Activity` rows automatically.
 - A blank mark becomes **Not submitted**. Any recorded mark becomes **Submitted**.
 - The ledger calculates every activity as `marks ÷ maximum marks × 100`; `Current_Standing` averages those normalized activities equally.
+- The student portal calculates its equal-weight score directly from the same activity rows it displays, so newly synced records are reflected immediately.
+- The chart uses green for on-time submissions, yellow for late submissions, and red for no submission. To mark historical late work explicitly, add an optional `Submission Timing` value of `Late` or `On time` to the ledger; existing late-penalty feedback is recognized automatically.
+- Students may select multiple missing or zero-score activities and submit one grade query. The first query creates a `Grade_Queries` tab with a staff-review status column.
 
 The student UI intentionally has no leaderboard and no review-status label. It only shows submission status, scores, and feedback.

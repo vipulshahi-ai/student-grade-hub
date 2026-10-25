@@ -45,12 +45,34 @@
 
         <section class="panel">
           <div class="panel-heading"><div><p class="eyebrow">Performance</p><h3>Score by activity</h3></div><span class="scale">0–100 scale</span></div>
+          <div class="chart-legend" aria-label="Submission timing legend">
+            <span><i class="legend-dot on-time"></i>On-time submission</span>
+            <span><i class="legend-dot late"></i>Late submission</span>
+            <span><i class="legend-dot missing"></i>Not submitted</span>
+          </div>
           <div id="performance-chart" class="chart" role="img" aria-label="Normalized score by activity"></div>
+        </section>
+
+        <section class="feedback-grid" aria-label="Mid-semester feedback">
+          <article class="feedback-card positive"><p class="eyebrow">Mid-semester reflection</p><h3>What was done better</h3><p id="doing-well"></p></article>
+          <article class="feedback-card improve"><p class="eyebrow">Next focus</p><h3>What can be improved</h3><p id="improve-next"></p></article>
         </section>
 
         <section class="panel">
           <div class="panel-heading"><div><p class="eyebrow">Activity record</p><h3>Submissions and feedback</h3></div></div>
           <div id="activity-list" class="activity-list"></div>
+        </section>
+
+        <section id="grade-query-panel" class="panel hidden">
+          <div class="panel-heading"><div><p class="eyebrow">Grade query</p><h3>Submitted work not shown correctly?</h3></div></div>
+          <p class="query-intro">Select one or more activities that you submitted but that show as not submitted or 0. Your query is recorded for review.</p>
+          <form id="grade-query-form">
+            <fieldset id="grade-query-options" class="query-options"></fieldset>
+            <label for="grade-query-note">Optional note</label>
+            <textarea id="grade-query-note" maxlength="1000" placeholder="For example: submission uploaded before the deadline."></textarea>
+            <button type="submit">Submit grade query</button>
+            <p id="grade-query-message" class="status-message" aria-live="polite"></p>
+          </form>
         </section>
       </section>
     </main>

@@ -2,6 +2,12 @@ const form = document.querySelector('#lookup-form');
 const input = document.querySelector('#student-id');
 const message = document.querySelector('#status-message');
 const report = document.querySelector('#report');
+const queryForm = document.querySelector('#grade-query-form');
+const queryPanel = document.querySelector('#grade-query-panel');
+const queryOptions = document.querySelector('#grade-query-options');
+const queryNote = document.querySelector('#grade-query-note');
+const queryMessage = document.querySelector('#grade-query-message');
+let currentReport = null;
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
@@ -44,6 +50,7 @@ function jsonp(endpoint, params) {
 }
 
 function renderReport(data) {
+  currentReport = data;
   report.classList.remove('hidden');
   document.querySelector('#student-name').textContent = data.name;
   document.querySelector('#student-meta').textContent = `${data.section} · Admission: ${data.admissionNo}`;
@@ -53,6 +60,9 @@ function renderReport(data) {
   document.querySelector('#missing-count').textContent = data.notSubmitted;
   renderChart(data.activities);
   renderActivities(data.activities);
+  document.querySelector('#doing-well').textContent = data.midSemFeedback?.doingWell || 'No reflection is available yet.';
+  document.querySelector('#improve-next').textContent = data.midSemFeedback?.improve || 'No reflection is available yet.';
+  renderGradeQuery(data.activities);
 }
 
 function renderActivities(activities) {
@@ -79,8 +89,11 @@ function renderActivities(activities) {
       ? `Marks: ${activity.marks}/${activity.maxMarks}`
       : 'No submission recorded';
     const pill = document.createElement('span');
-    pill.className = `pill ${activity.status === 'Submitted' ? 'submitted' : 'not-submitted'}`;
-    pill.textContent = activity.status;
+    const timingClass = activity.status === 'Not submitted'
+      ? 'not-submitted'
+      : activity.timing === 'Late' ? 'late' : 'submitted';
+    pill.className = `pill ${timingClass}`;
+    pill.textContent = activity.status === 'Submitted' ? `${activity.status} · ${activity.timing || 'On time'}` : activity.status;
     const feedback = document.createElement('p');
     feedback.className = 'feedback';
     feedback.textContent = activity.comment || 'No feedback shared for this activity.';
@@ -110,18 +123,69 @@ function renderChart(activities) {
   const path = svgNode('path', { d: activities.map((a, i) => `${i ? 'L' : 'M'} ${x(i)} ${y(a.normalizedScore)}`).join(' '), class: 'score-line' });
   svg.append(path);
   activities.forEach((activity, index) => {
-    const dot = svgNode('circle', { cx: x(index), cy: y(activity.normalizedScore), r: 5, class: activity.status === 'Submitted' ? 'score-dot' : 'score-dot missing' });
+    const timingClass = activity.status === 'Not submitted'
+      ? 'missing'
+      : activity.timing === 'Late' ? 'late' : 'on-time';
+    const dot = svgNode('circle', { cx: x(index), cy: y(activity.normalizedScore), r: 5, class: `score-dot ${timingClass}` });
     const label = svgNode('text', { x: x(index), y: height - 16, class: 'axis-label', 'text-anchor': 'middle' });
     label.textContent = activity.id;
     const title = svgNode('title');
     title.textContent = activity.status === 'Submitted'
-      ? `${activity.title}: ${formatScore(activity.normalizedScore)}/100`
+      ? `${activity.title}: ${formatScore(activity.normalizedScore)}/100 · ${activity.timing || 'On time'}`
       : `${activity.title}: Not submitted`;
     dot.append(title);
     svg.append(dot, label);
   });
   container.append(svg);
 }
+
+function renderGradeQuery(activities) {
+  const eligible = activities.filter(activity => activity.status === 'Not submitted' || Number(activity.marks) === 0);
+  queryOptions.replaceChildren();
+  queryNote.value = '';
+  queryMessage.textContent = '';
+  if (!eligible.length) {
+    queryPanel.classList.add('hidden');
+    return;
+  }
+  eligible.forEach(activity => {
+    const label = document.createElement('label');
+    label.className = 'query-option';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.name = 'activities';
+    checkbox.value = activity.id;
+    const text = document.createElement('span');
+    text.textContent = `${activity.id} · ${activity.title}`;
+    label.append(checkbox, text);
+    queryOptions.append(label);
+  });
+  queryPanel.classList.remove('hidden');
+}
+
+queryForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const selected = [...queryOptions.querySelectorAll('input:checked')].map(input => input.value);
+  if (!selected.length) {
+    showQueryMessage('Select at least one activity.', true);
+    return;
+  }
+  if (!currentReport) return;
+  showQueryMessage('Submitting your grade query…');
+  try {
+    const data = await jsonp(window.GRADE_HUB_API_URL, {
+      action: 'reportIssue',
+      id: currentReport.admissionNo,
+      activities: selected.join(','),
+      note: queryNote.value.trim()
+    });
+    if (!data.ok) throw new Error(data.error || 'The grade query could not be recorded.');
+    queryForm.reset();
+    showQueryMessage(`Grade query recorded for ${data.issue.activities} activit${data.issue.activities === 1 ? 'y' : 'ies'}.`);
+  } catch (error) {
+    showQueryMessage(error.message || 'The grade query could not be recorded.', true);
+  }
+});
 
 function svgNode(name, attributes = {}) {
   const node = document.createElementNS('http://www.w3.org/2000/svg', name);
@@ -136,4 +200,9 @@ function formatScore(value) {
 function showMessage(text, isError = false) {
   message.textContent = text;
   message.classList.toggle('error', isError);
+}
+
+function showQueryMessage(text, isError = false) {
+  queryMessage.textContent = text;
+  queryMessage.classList.toggle('error', isError);
 }

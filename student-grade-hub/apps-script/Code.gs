@@ -10,7 +10,8 @@ const GRADE_HUB = Object.freeze({
   sheets: {
     activities: 'Activities',
     ledger: 'Student_Activity',
-    standing: 'Current_Standing'
+    standing: 'Current_Standing',
+    issueLog: 'Grade_Queries'
   }
 });
 
@@ -21,6 +22,8 @@ function doGet(e) {
   try {
     if (params.action === 'health') {
       payload = { ok: true, service: 'student-grade-hub', updatedAt: new Date().toISOString() };
+    } else if (params.action === 'reportIssue') {
+      payload = { ok: true, issue: reportGradeQuery_(params) };
     } else {
       const lookup = normaliseLookup_(params.id || '');
       if (!lookup) throw new Error('Enter an admission number or enrollment number.');
@@ -67,6 +70,7 @@ function getStudentReport_(lookup) {
         maxMarks: number_(row['Max Marks'] || activity['Max Marks']),
         normalizedScore: submitted ? round1_(number_(row['Normalized Score /100'])) : 0,
         status: submitted ? 'Submitted' : 'Not submitted',
+        timing: submissionTiming_(row, submitted),
         comment: submitted
           ? String(row['Student Visible Feedback'] || row['Teacher Comment'] || '').trim()
           : ''
@@ -75,16 +79,119 @@ function getStudentReport_(lookup) {
     .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
 
   const submitted = activities.filter(activity => activity.status === 'Submitted').length;
+  const equalWeightScore = activities.length
+    ? round1_(activities.reduce((total, activity) => total + activity.normalizedScore, 0) / activities.length)
+    : 0;
   return {
     name: String(student['Student Name']),
     section: String(student.Section),
     admissionNo: String(student['Admission No.']),
     enrollmentNo: String(student['Enrollment No. / PRN']),
-    normalizedScore: round1_(number_(student['Normalized Score /100'])),
+    // Calculate from the same records returned to the UI. This keeps the
+    // overall value current even before a separate standing summary refresh.
+    normalizedScore: equalWeightScore,
     submitted,
     notSubmitted: activities.length - submitted,
-    activities
+    activities,
+    midSemFeedback: midSemFeedback_(activities)
   };
+}
+
+/**
+ * Accept a student grade query from the public portal. Only activities that
+ * are missing or have a recorded score of zero may be selected.
+ */
+function reportGradeQuery_(params) {
+  const lookup = normaliseLookup_(params.id || '');
+  if (!lookup) throw new Error('Enter an admission number or enrollment number.');
+
+  const requestedIds = [...new Set(String(params.activities || '')
+    .split(',')
+    .map(value => String(value).trim())
+    .filter(Boolean))];
+  if (!requestedIds.length) throw new Error('Select at least one activity.');
+  if (requestedIds.length > 12) throw new Error('Select no more than 12 activities at once.');
+
+  const report = getStudentReport_(lookup);
+  const eligible = report.activities.filter(activity =>
+    requestedIds.includes(activity.id) &&
+    (activity.status === 'Not submitted' || number_(activity.marks) === 0)
+  );
+  if (eligible.length !== requestedIds.length) {
+    throw new Error('One or more selected activities are not eligible for a grade query.');
+  }
+
+  const ss = SpreadsheetApp.openById(GRADE_HUB.spreadsheetId);
+  const sheet = getOrCreateIssueSheet_(ss);
+  const note = String(params.note || '').trim().slice(0, 1000);
+  sheet.appendRow([
+    new Date(),
+    report.admissionNo,
+    report.enrollmentNo,
+    report.name,
+    report.section,
+    eligible.map(activity => activity.id).join(', '),
+    eligible.map(activity => activity.title).join(' | '),
+    note,
+    'Open',
+    ''
+  ]);
+  return { recorded: true, activities: eligible.length };
+}
+
+function getOrCreateIssueSheet_(ss) {
+  let sheet = ss.getSheetByName(GRADE_HUB.sheets.issueLog);
+  if (sheet) return sheet;
+  sheet = ss.insertSheet(GRADE_HUB.sheets.issueLog);
+  sheet.getRange(1, 1, 1, 10).setValues([[
+    'Submitted At', 'Admission No.', 'Enrollment No. / PRN', 'Student Name',
+    'Section', 'Activity IDs', 'Activities', 'Student Note', 'Status', 'Instructor Notes'
+  ]]);
+  sheet.setFrozenRows(1);
+  return sheet;
+}
+
+function midSemFeedback_(activities) {
+  const submitted = activities.filter(activity => activity.status === 'Submitted');
+  const missing = activities.filter(activity => activity.status === 'Not submitted');
+  const strongest = submitted
+    .slice()
+    .sort((a, b) => b.normalizedScore - a.normalizedScore || a.id.localeCompare(b.id))
+    .slice(0, 2);
+  const lowest = submitted
+    .slice()
+    .sort((a, b) => a.normalizedScore - b.normalizedScore || a.id.localeCompare(b.id))
+    .slice(0, 2);
+
+  return {
+    doingWell: strongest.length
+      ? `Strongest work: ${strongest.map(activity => `${activity.id} (${formatScore_(activity.normalizedScore)})`).join(', ')}.`
+      : 'No graded submissions are available yet.',
+    improve: missing.length
+      ? `Submit next: ${missing.slice(0, 3).map(activity => activity.id).join(', ')}${missing.length > 3 ? ` and ${missing.length - 3} more` : ''}.`
+      : lowest.length
+        ? `Focus next on: ${lowest.map(activity => `${activity.id} (${formatScore_(activity.normalizedScore)})`).join(', ')}.`
+        : 'Keep your submission record consistent.'
+  };
+}
+
+function submissionTiming_(row, submitted) {
+  if (!submitted) return 'Not submitted';
+  const explicit = String(row['Submission Timing'] || '').trim().toLowerCase();
+  if (explicit === 'late') return 'Late';
+  if (explicit === 'on time' || explicit === 'on-time') return 'On time';
+  const evidence = [
+    row['Teacher Comment'],
+    row['Student Visible Feedback'],
+    row['Source Detail']
+  ].map(value => String(value || '').toLowerCase()).join(' ');
+  return /late submission|late-submission|deducted\s+\d+\s+points?\s+for\s+late/.test(evidence)
+    ? 'Late'
+    : 'On time';
+}
+
+function formatScore_(value) {
+  return Number(number_(value)).toFixed(1);
 }
 
 /** Add a staff menu whenever the spreadsheet opens. */
