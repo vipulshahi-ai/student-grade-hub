@@ -114,7 +114,9 @@ function renderChart(activities) {
     const label = svgNode('text', { x: x(index), y: height - 16, class: 'axis-label', 'text-anchor': 'middle' });
     label.textContent = activity.id;
     const title = svgNode('title');
-    title.textContent = `${activity.title}: ${formatScore(activity.normalizedScore)}/100`;
+    title.textContent = activity.status === 'Submitted'
+      ? `${activity.title}: ${formatScore(activity.normalizedScore)}/100`
+      : `${activity.title}: Not submitted`;
     dot.append(title);
     svg.append(dot, label);
   });

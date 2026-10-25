@@ -44,18 +44,34 @@ function getStudentReport_(lookup) {
   if (!student) throw new Error('No student report was found for that number.');
 
   const ledger = records_(ss.getSheetByName(GRADE_HUB.sheets.ledger));
-  const activities = ledger
-    .filter(row => String(row['Student Key']) === String(student['Student Key']))
-    .map(row => ({
-      id: String(row['Activity ID'] || ''),
-      title: String(row['Activity Title'] || 'Untitled activity'),
-      category: String(row.Category || 'Activity'),
-      marks: number_(row.Marks),
-      maxMarks: number_(row['Max Marks']),
-      normalizedScore: round1_(number_(row['Normalized Score /100'])),
-      status: String(row.Status) === 'Not submitted' ? 'Not submitted' : 'Submitted',
-      comment: String(row['Student Visible Feedback'] || row['Teacher Comment'] || '').trim()
-    }))
+  const section = String(student.Section || '').match(/\d+/)?.[0] || '';
+  const gradesByActivity = new Map(
+    ledger
+      .filter(row => String(row['Student Key']) === String(student['Student Key']))
+      .map(row => [String(row['Activity ID']), row])
+  );
+
+  // Build the report from the activity catalogue, not only ledger rows. A
+  // missing ledger row deliberately represents a student who did not submit.
+  const activities = records_(ss.getSheetByName(GRADE_HUB.sheets.activities))
+    .filter(activity => String(activity['Student Portal Visible']).toLowerCase() === 'yes')
+    .filter(activity => isEligibleForSection_(activity['Eligible Section'], section))
+    .map(activity => {
+      const row = gradesByActivity.get(String(activity['Activity ID'])) || {};
+      const submitted = String(row.Status) === 'Submitted';
+      return {
+        id: String(activity['Activity ID'] || ''),
+        title: String(activity['Activity Title'] || 'Untitled activity'),
+        category: String(activity.Category || 'Activity'),
+        marks: submitted ? number_(row.Marks) : 0,
+        maxMarks: number_(row['Max Marks'] || activity['Max Marks']),
+        normalizedScore: submitted ? round1_(number_(row['Normalized Score /100'])) : 0,
+        status: submitted ? 'Submitted' : 'Not submitted',
+        comment: submitted
+          ? String(row['Student Visible Feedback'] || row['Teacher Comment'] || '').trim()
+          : ''
+      };
+    })
     .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
 
   const submitted = activities.filter(activity => activity.status === 'Submitted').length;
@@ -216,6 +232,11 @@ function normaliseLookup_(value) {
 function number_(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function isEligibleForSection_(eligibleSection, section) {
+  const value = String(eligibleSection || '').trim().toLowerCase();
+  return value === 'both' || value === String(section).toLowerCase();
 }
 
 function round1_(value) {
