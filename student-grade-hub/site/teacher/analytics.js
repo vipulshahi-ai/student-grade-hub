@@ -9,7 +9,7 @@
     A01:'Neural computing foundations', A02:'Neural computing foundations', A03:'Neural computing foundations',
     A04:'Artificial neurons & Hebbian learning', A05:'Perceptron & ADALINE',
     A06:'Perceptron & ADALINE', A07:'Perceptron & ADALINE', A08:'ADALINE',
-    A09:'Backpropagation', A10:'Backpropagation', A11:'Neural network coding — mixed', A12:'Neural network coding — mixed',
+    A09:'Backpropagation', A10:'Backpropagation', A11:'Neural network coding — mixed', A12:'ADALINE',
     A13:'Neural computing foundations', A14:'Neural computing foundations', A15:'Neural learning — mixed review',
     A16:'Neural networks & hybrid systems', A17:'Neural networks & hybrid systems',
     A18:'Fuzzy sets & relations', A19:'Fuzzy sets & relations', A20:'Neural networks — cumulative',

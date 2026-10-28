@@ -19,7 +19,7 @@ function doGet(e) {
   const params = (e && e.parameter) || {};
   if (params.action === 'teacher') {
     try { return teacherDashboard_(); }
-    catch (error) { return HtmlService.createHtmlOutput('<p>Teacher access required. Sign in with your faculty Google account, then reopen this page.</p>'); }
+    catch (error) { return HtmlService.createHtmlOutput('<p>' + String(error.message || 'Teacher dashboard unavailable.').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])) + '</p>'); }
   }
   let payload;
 
@@ -172,7 +172,7 @@ function midSemFeedback_(activities) {
       ? `Strongest work: ${strongest.map(activity => `${activity.id} (${formatScore_(activity.normalizedScore)})`).join(', ')}.`
       : 'No graded submissions are available yet.',
     improve: missing.length
-      ? `Submit next: ${missing.slice(0, 3).map(activity => activity.id).join(', ')}${missing.length > 3 ? ` and ${missing.length - 3} more` : ''}.`
+      ? `Review missed work: ${missing.slice(0, 3).map(activity => activity.title).join('; ')}${missing.length > 3 ? ` and ${missing.length - 3} more` : ''}. Midterm submissions are closed. Raise a grade query if you already submitted.`
       : lowest.length
         ? `Focus next on: ${lowest.map(activity => `${activity.id} (${formatScore_(activity.normalizedScore)})`).join(', ')}.`
         : 'Keep your submission record consistent.'
