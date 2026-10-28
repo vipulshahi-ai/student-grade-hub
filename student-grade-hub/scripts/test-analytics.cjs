@@ -1,0 +1,23 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const A=require('../site/teacher/analytics.js');
+const raw=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+const m=A.normalize(raw);
+assert.equal(m.students.length,105);
+assert.equal(m.students.reduce((t,s)=>t+s.rows.length,0),2100);
+assert.equal(m.issues.length,0);
+for(const s of m.students){assert(s.overall>=0&&s.overall<=100);assert.equal(s.submitted+s.missing,s.rows.length);assert.equal(s.learningPace,'Insufficient timing evidence');}
+const varun=m.students.find(s=>s.admission==='24SCSE1410313');
+assert.equal(varun.rows.find(r=>r.id==='A03').submitted,true,'A graded zero remains submitted');
+assert.equal(varun.rows.find(r=>r.id==='A03').score,0);
+const aditya=m.students.find(s=>s.admission==='25SCSE1410112');
+assert.equal(aditya.rows.find(r=>r.id==='A02').score,100,'20/20 normalises to 100');
+assert(!aditya.rows.some(r=>r.id==='A03'),'Other-section activity is excluded');
+assert.equal(A.select(m,{section:'32'}).length,53);
+assert.equal(A.select(m,{section:'33'}).length,52);
+const topic=A.select(m,{topic:'ADALINE'});assert(topic.every(s=>s.rows.every(r=>r.topic==='ADALINE')));
+const ranks=A.rank(m.students);assert.equal(ranks.length,10);assert(ranks.every((s,i)=>i===0||s.overall<=ranks[i-1].overall));
+const script=fs.readFileSync('student-grade-hub/apps-script/Teacher.gs','utf8');
+assert(script.includes('Session.getActiveUser().getEmail()'),'Staff access uses active caller identity');
+assert(!script.includes('getEffectiveUser'),'Execution owner must not be used to identify visitors');
+console.log('Analytics verified: 105 learners, 2,100 applicable records, section/topic filters, zero-score submission, equal normalization, rankings and staff access guard.');

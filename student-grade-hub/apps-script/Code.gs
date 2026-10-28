@@ -17,6 +17,10 @@ const GRADE_HUB = Object.freeze({
 
 function doGet(e) {
   const params = (e && e.parameter) || {};
+  if (params.action === 'teacher') {
+    try { return teacherDashboard_(); }
+    catch (error) { return HtmlService.createHtmlOutput('<p>Teacher access required. Sign in with your faculty Google account, then reopen this page.</p>'); }
+  }
   let payload;
 
   try {
@@ -185,7 +189,7 @@ function submissionTiming_(row, submitted) {
     row['Student Visible Feedback'],
     row['Source Detail']
   ].map(value => String(value || '').toLowerCase()).join(' ');
-  return /late submission|late-submission|deducted\s+\d+\s+points?\s+for\s+late/.test(evidence)
+  return /\blate\b/.test(evidence)
     ? 'Late'
     : 'On time';
 }
@@ -198,6 +202,7 @@ function formatScore_(value) {
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Grade Hub')
+    .addItem('Open faculty analytics', 'showTeacherDashboard')
     .addItem('Sync current activity tab', 'syncCurrentActivity')
     .addItem('Sync all activity tabs', 'syncAllActivities')
     .addToUi();
@@ -252,7 +257,8 @@ function syncActivity_(activityId) {
     if (!studentKey || !targetRow) return;
     const marks = source.Marks === '' || source.Marks === null ? 0 : number_(source.Marks);
     const hasRecordedMark = source.Marks !== '' && source.Marks !== null;
-    const status = hasRecordedMark ? 'Submitted' : 'Not submitted';
+    const status = source.Status === 'Not submitted' ? 'Not submitted'
+      : source.Status === 'Submitted' || hasRecordedMark ? 'Submitted' : 'Not submitted';
     const feedback = String(source['Student Visible Feedback'] || source['Teacher Comment'] || '').trim();
     const sourceDetail = String(source['Source Detail'] || '').trim();
     const updated = new Date();
@@ -285,7 +291,8 @@ function ensureLedgerRows_(ledgerSheet, sourceRows, activity) {
     .map((row, index) => {
       const targetRow = firstNewRow + index;
       const marks = row.Marks === '' || row.Marks === null ? 0 : number_(row.Marks);
-      const submitted = row.Marks !== '' && row.Marks !== null;
+      const submitted = row.Status === 'Not submitted' ? false
+        : row.Status === 'Submitted' || (row.Marks !== '' && row.Marks !== null);
       return [
         String(row['Student Key']),
         String(row.Section || ''),

@@ -36,3 +36,23 @@ The web app serves a student report by admission or enrollment number. Its JSONP
 - Students may select multiple missing or zero-score activities and submit one grade query. The first query creates a `Grade_Queries` tab with a staff-review status column.
 
 The student UI intentionally has no leaderboard and no review-status label. It only shows submission status, scores, and feedback.
+
+## Faculty analytics
+
+`site/teacher/` is a separate faculty analytical workspace: topic comparisons,
+top-10 rankings, section filters, participation bands, intervention lists,
+quiz/practical gaps, learner drill-downs, CSV export and audit coverage.
+The public static files contain no class dataset. Live data is loaded only
+inside the authenticated Apps Script faculty page (`?action=teacher`).
+`getTeacherData()` checks the active Google user's exact faculty email before
+reading the class data. Anonymous callers and student accounts are denied.
+
+Deploy both `Code.gs` and `Teacher.gs` in the existing Apps Script project.
+The `Teacher_Topics` sheet overrides activity-to-topic mappings. Mixed-topic
+assessments remain grouped until question-level marks are available.
+The `Teacher_Audit` sheet records dated reconciliation and closure checks.
+
+Participation bands are Active (at least 80% submitted), Intermediate active
+(50–79.9%) and Low active (below 50%). Submitted average is kept distinct
+from overall performance with missing work included. Fast/mid/slow learning
+pace remains unclassified until comparable attempts and timing exist.
