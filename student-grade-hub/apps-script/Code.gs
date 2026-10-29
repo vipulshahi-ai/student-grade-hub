@@ -75,9 +75,7 @@ function getStudentReport_(lookup) {
         normalizedScore: submitted ? round1_(number_(row['Normalized Score /100'])) : 0,
         status: submitted ? 'Submitted' : 'Not submitted',
         timing: submissionTiming_(row, submitted),
-        comment: submitted
-          ? String(row['Student Visible Feedback'] || row['Teacher Comment'] || '').trim()
-          : ''
+        comment: String(row['Student Visible Feedback'] || row['Teacher Comment'] || '').trim()
       };
     })
     .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
@@ -184,6 +182,7 @@ function submissionTiming_(row, submitted) {
   const explicit = String(row['Submission Timing'] || '').trim().toLowerCase();
   if (explicit === 'late') return 'Late';
   if (explicit === 'on time' || explicit === 'on-time') return 'On time';
+  if (explicit === 'unknown') return 'Unknown';
   const evidence = [
     row['Teacher Comment'],
     row['Student Visible Feedback'],

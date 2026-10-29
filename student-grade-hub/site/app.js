@@ -91,7 +91,7 @@ function renderActivities(activities) {
     const pill = document.createElement('span');
     const timingClass = activity.status === 'Not submitted'
       ? 'not-submitted'
-      : activity.timing === 'Late' ? 'late' : 'submitted';
+      : activity.timing === 'Late' ? 'late' : activity.timing === 'Unknown' ? 'unknown' : 'submitted';
     pill.className = `pill ${timingClass}`;
     pill.textContent = activity.status === 'Submitted' ? `${activity.status} · ${activity.timing || 'On time'}` : activity.status;
     const feedback = document.createElement('p');
@@ -125,7 +125,7 @@ function renderChart(activities) {
   activities.forEach((activity, index) => {
     const timingClass = activity.status === 'Not submitted'
       ? 'missing'
-      : activity.timing === 'Late' ? 'late' : 'on-time';
+      : activity.timing === 'Late' ? 'late' : activity.timing === 'Unknown' ? 'unknown' : 'on-time';
     const dot = svgNode('circle', { cx: x(index), cy: y(activity.normalizedScore), r: 5, class: `score-dot ${timingClass}` });
     const label = svgNode('text', { x: x(index), y: height - 16, class: 'axis-label', 'text-anchor': 'middle' });
     label.textContent = activity.id;
