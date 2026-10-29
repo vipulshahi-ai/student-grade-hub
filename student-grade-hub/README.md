@@ -29,10 +29,10 @@ The web app serves a student report by admission or enrollment number. Its JSONP
 - Enter marks and student-visible feedback in an `A## ...` activity tab.
 - Use **Grade Hub → Sync current activity tab** (or sync all tabs).
 - For a new weekly activity, add its row to `Activities`, create an `A## ...` tab using an existing activity tab as the header/roster template, then run sync. The script creates its missing `Student_Activity` rows automatically.
-- A blank mark becomes **Not submitted**. Any recorded mark becomes **Submitted**.
+- An explicit **Not submitted** status is respected, including prefilled zero marks. A recorded zero with **Submitted** status remains submitted.
 - The ledger calculates every activity as `marks ÷ maximum marks × 100`; `Current_Standing` averages those normalized activities equally.
 - The student portal calculates its equal-weight score directly from the same activity rows it displays, so newly synced records are reflected immediately.
-- The chart uses green for on-time submissions, yellow for late submissions, and red for no submission. To mark historical late work explicitly, add an optional `Submission Timing` value of `Late` or `On time` to the ledger; existing late-penalty feedback is recognized automatically.
+- The chart uses green for on-time submissions, yellow for late submissions, and red for no submission. Audited `Submission Timing` and `Timing Evidence` fields are in ledger columns N:O. `Unknown` uses a neutral marker for retained grades without timestamp evidence. Explicit timing takes precedence over old feedback wording.
 - Students may select multiple missing or zero-score activities and submit one grade query. The first query creates a `Grade_Queries` tab with a staff-review status column.
 
 The student UI intentionally has no leaderboard and no review-status label. It only shows submission status, scores, and feedback.
@@ -46,6 +46,8 @@ The public static files contain no class dataset. Live data is loaded only
 inside the authenticated Apps Script faculty page (`?action=teacher`).
 `getTeacherData()` checks the active Google user's exact faculty email before
 reading the class data. Anonymous callers and student accounts are denied.
+
+The separate faculty web app deployment is restricted to **Only myself**. Its address is provided privately to the faculty owner. The student API remains a separate public deployment. Faculty data refreshes from the backend on opening and through **Refresh from sheet**.
 
 Deploy both `Code.gs` and `Teacher.gs` in the existing Apps Script project.
 The `Teacher_Topics` sheet overrides activity-to-topic mappings. Mixed-topic
