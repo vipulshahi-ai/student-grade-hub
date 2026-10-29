@@ -1,83 +1,34 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="View your Soft Computing activity submissions, marks, feedback and performance." />
-    <title>Soft Computing · Student Report</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <main class="shell">
-      <section class="hero">
-        <p class="eyebrow">Soft Computing</p>
-        <h1>Student activity report</h1>
-        <p class="intro">Enter your admission number or enrollment number to see your activity record and feedback.</p>
-        <form id="lookup-form" class="lookup-form">
-          <label for="student-id">Admission number or enrollment number</label>
-          <div class="lookup-row">
-            <input id="student-id" name="student-id" autocomplete="off" placeholder="For example: 24131410010" required />
-            <button type="submit">View report</button>
-          </div>
-        </form>
-        <p id="status-message" class="status-message" aria-live="polite"></p>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="The Soft Computing portal for student progress and faculty analytics.">
+  <title>Soft Computing · Learning Portal</title>
+  <link rel="stylesheet" href="portal.css">
+</head>
+<body>
+  <div class="portal-shell">
+    <header class="portal-header"><a class="brand" href="./"><span class="brand-symbol" aria-hidden="true">∑</span><span>SOFT COMPUTING<small>Learning portal</small></span></a><span class="course-tag">SECTIONS 32 &amp; 33</span></header>
+    <main>
+      <section class="welcome"><p class="eyebrow">YOUR COURSE. ONE PLACE.</p><h1>See the progress.<br><span>Find the next step.</span></h1><p class="intro">A shared starting point for learning and teaching.<br>Choose your dashboard to get started.</p></section>
+      <section class="dashboard-options" aria-label="Choose your dashboard">
+        <a class="dashboard-card student-card" href="student.html">
+          <div class="card-top"><span class="card-icon" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="m4 15 16-8 16 8-16 8-16-8Z"/><path d="M11 19v10c6 5 12 5 18 0V19M36 16v13"/></svg></span><span class="role">FOR LEARNERS</span></div>
+          <h2>Student dashboard</h2><p>Your submissions, scores and feedback. Understand your current standing and choose what to focus on next.</p>
+          <ul><li>Activity progress and normalized marks</li><li>Submission status and teacher feedback</li><li>Grade queries for missing or zero marks</li></ul>
+          <div class="card-bottom"><span>Open student dashboard</span><span class="arrow" aria-hidden="true">↗</span></div>
+        </a>
+        <a class="dashboard-card faculty-card" href="https://script.google.com/a/macros/galgotiasuniversity.edu.in/s/AKfycbwj2f4Sim6vEeJdb4eNKKUQdaNsVQcVuao0o82GLAUuG_37XNwbYzbQxoSg6DumhyDN/exec?action=teacher">
+          <div class="card-top"><span class="card-icon" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M7 32V22h6v10M17 32V15h6v17M27 32V8h6v24M5 33h30"/></svg></span><span class="role">FOR EDUCATORS</span></div>
+          <h2>Faculty dashboard</h2><p>Explore class performance, compare topics and sections, and find the learners who need your attention.</p>
+          <ul><li>Topic insights and top 10 rankings</li><li>Participation and performance levels</li><li>Individual reports and grading audit</li></ul>
+          <div class="card-bottom"><span>Open faculty dashboard<small>Faculty Google account required</small></span><span class="arrow" aria-hidden="true">↗</span></div>
+        </a>
       </section>
-
-      <section id="report" class="report hidden" aria-live="polite">
-        <header class="student-header">
-          <div>
-            <p class="eyebrow">Your current standing</p>
-            <h2 id="student-name"></h2>
-            <p id="student-meta" class="muted"></p>
-          </div>
-          <div class="score-card">
-            <span>Equal-weight score</span>
-            <strong id="overall-score"></strong>
-            <small>out of 100</small>
-          </div>
-        </header>
-
-        <div class="summary-grid">
-          <article class="metric"><span>Activities</span><strong id="activity-count"></strong></article>
-          <article class="metric success"><span>Submitted</span><strong id="submitted-count"></strong></article>
-          <article class="metric warning"><span>Not submitted</span><strong id="missing-count"></strong></article>
-        </div>
-
-        <section class="panel">
-          <div class="panel-heading"><div><p class="eyebrow">Performance</p><h3>Score by activity</h3></div><span class="scale">0–100 scale</span></div>
-          <div class="chart-legend" aria-label="Submission timing legend">
-            <span><i class="legend-dot on-time"></i>On-time submission</span>
-            <span><i class="legend-dot late"></i>Late submission</span>
-            <span><i class="legend-dot missing"></i>Not submitted</span>
-            <span><i class="legend-dot unknown"></i>Timing unavailable</span>
-          </div>
-          <div id="performance-chart" class="chart" role="img" aria-label="Normalized score by activity"></div>
-        </section>
-
-        <section class="feedback-grid" aria-label="Mid-semester feedback">
-          <article class="feedback-card positive"><p class="eyebrow">Mid-semester reflection</p><h3>What was done better</h3><p id="doing-well"></p></article>
-          <article class="feedback-card improve"><p class="eyebrow">Next focus</p><h3>What can be improved</h3><p id="improve-next"></p></article>
-        </section>
-
-        <section class="panel">
-          <div class="panel-heading"><div><p class="eyebrow">Activity record</p><h3>Submissions and feedback</h3></div></div>
-          <div id="activity-list" class="activity-list"></div>
-        </section>
-
-        <section id="grade-query-panel" class="panel hidden">
-          <div class="panel-heading"><div><p class="eyebrow">Grade query</p><h3>Submitted work not shown correctly?</h3></div></div>
-          <p class="query-intro">Select one or more activities that you submitted but that show as not submitted or 0. Your query is recorded for review.</p>
-          <form id="grade-query-form">
-            <fieldset id="grade-query-options" class="query-options"></fieldset>
-            <label for="grade-query-note">Optional note</label>
-            <textarea id="grade-query-note" maxlength="1000" placeholder="For example: submission uploaded before the deadline."></textarea>
-            <button type="submit">Submit grade query</button>
-            <p id="grade-query-message" class="status-message" aria-live="polite"></p>
-          </form>
-        </section>
-      </section>
+      <section class="portal-note"><span class="note-line" aria-hidden="true"></span><p>Every activity tells part of the story.<br><strong>Use the feedback to decide what comes next.</strong></p></section>
     </main>
-    <script src="config.js"></script>
-    <script src="app.js"></script>
-  </body>
+    <footer><span>SOFT COMPUTING · LEARNING PORTAL</span><span>Learn. Reflect. Progress.</span></footer>
+  </div>
+</body>
 </html>

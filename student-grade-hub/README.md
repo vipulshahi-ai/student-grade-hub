@@ -3,7 +3,10 @@
 This folder contains the two parts of the student report:
 
 - `apps-script/Code.gs` — API and staff grade-sync automation, bound to the Google Sheet.
-- `site/` — static student UI, ready to publish on GitHub Pages.
+- `site/index.html` — shared portal homepage with student and faculty entry cards.
+- `site/student.html` — student report, using the existing API.
+- `site/teacher/` — faculty analytics assets, served inside the authenticated faculty workspace.
+- `STUDENT_INSIGHTS_PLAN.md` — proposed student insights and leaderboard rules.
 
 ## Deploy the API
 

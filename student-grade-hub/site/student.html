@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="View your Soft Computing activity submissions, marks, feedback and performance." />
+    <title>Soft Computing · Student Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <nav class="portal-return" aria-label="Portal navigation"><a href="./">← Portal home</a><span>Student dashboard</span></nav>
+      <section class="hero">
+        <p class="eyebrow">Soft Computing</p>
+        <h1>Your learning dashboard</h1>
+        <p class="intro">Enter your admission number or enrollment number to see your activity record and feedback.</p>
+        <form id="lookup-form" class="lookup-form">
+          <label for="student-id">Admission number or enrollment number</label>
+          <div class="lookup-row">
+            <input id="student-id" name="student-id" autocomplete="off" placeholder="For example: 24131410010" required />
+            <button type="submit">View report</button>
+          </div>
+        </form>
+        <p id="status-message" class="status-message" aria-live="polite"></p>
+      </section>
+
+      <section id="report" class="report hidden" aria-live="polite">
+        <header class="student-header">
+          <div>
+            <p class="eyebrow">Your current standing</p>
+            <h2 id="student-name"></h2>
+            <p id="student-meta" class="muted"></p>
+          </div>
+          <div class="score-card">
+            <span>Equal-weight score</span>
+            <strong id="overall-score"></strong>
+            <small>out of 100</small>
+          </div>
+        </header>
+
+        <div class="summary-grid">
+          <article class="metric"><span>Activities</span><strong id="activity-count"></strong></article>
+          <article class="metric success"><span>Submitted</span><strong id="submitted-count"></strong></article>
+          <article class="metric warning"><span>Not submitted</span><strong id="missing-count"></strong></article>
+        </div>
+
+        <section class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">Performance</p><h3>Score by activity</h3></div><span class="scale">0–100 scale</span></div>
+          <div class="chart-legend" aria-label="Submission timing legend">
+            <span><i class="legend-dot on-time"></i>On-time submission</span>
+            <span><i class="legend-dot late"></i>Late submission</span>
+            <span><i class="legend-dot missing"></i>Not submitted</span>
+            <span><i class="legend-dot unknown"></i>Timing unavailable</span>
+          </div>
+          <div id="performance-chart" class="chart" role="img" aria-label="Normalized score by activity"></div>
+        </section>
+
+        <section class="feedback-grid" aria-label="Mid-semester feedback">
+          <article class="feedback-card positive"><p class="eyebrow">Mid-semester reflection</p><h3>What was done better</h3><p id="doing-well"></p></article>
+          <article class="feedback-card improve"><p class="eyebrow">Next focus</p><h3>What can be improved</h3><p id="improve-next"></p></article>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">Activity record</p><h3>Submissions and feedback</h3></div></div>
+          <div id="activity-list" class="activity-list"></div>
+        </section>
+
+        <section id="grade-query-panel" class="panel hidden">
+          <div class="panel-heading"><div><p class="eyebrow">Grade query</p><h3>Submitted work not shown correctly?</h3></div></div>
+          <p class="query-intro">Select one or more activities that you submitted but that show as not submitted or 0. Your query is recorded for review.</p>
+          <form id="grade-query-form">
+            <fieldset id="grade-query-options" class="query-options"></fieldset>
+            <label for="grade-query-note">Optional note</label>
+            <textarea id="grade-query-note" maxlength="1000" placeholder="For example: submission uploaded before the deadline."></textarea>
+            <button type="submit">Submit grade query</button>
+            <p id="grade-query-message" class="status-message" aria-live="polite"></p>
+          </form>
+        </section>
+      </section>
+    </main>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
