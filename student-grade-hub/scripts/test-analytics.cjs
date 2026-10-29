@@ -6,7 +6,8 @@ const m=A.normalize(raw);
 assert.equal(m.students.length,105);
 assert.equal(m.students.reduce((t,s)=>t+s.rows.length,0),2100);
 assert.equal(m.issues.length,0);
-for(const s of m.students){assert(s.overall>=0&&s.overall<=100);assert.equal(s.submitted+s.missing,s.rows.length);assert.equal(s.learningPace,'Insufficient timing evidence');}
+for(const s of m.students){assert(s.overall>=0&&s.overall<=100);assert.equal(s.submitted+s.missing,s.rows.length);assert.equal(s.performanceLevel,A.performanceLevel(s.mastery));}
+assert.deepEqual([A.performanceLevel(100),A.performanceLevel(80),A.performanceLevel(79.9),A.performanceLevel(50),A.performanceLevel(49.9),A.performanceLevel(0),A.performanceLevel(null)],['High','High','Intermediate','Intermediate','Low','Low',null]);
 const varun=m.students.find(s=>s.admission==='24SCSE1410313');
 assert.equal(varun.rows.find(r=>r.id==='A03').submitted,true,'A graded zero remains submitted');
 assert.equal(varun.rows.find(r=>r.id==='A03').score,0);

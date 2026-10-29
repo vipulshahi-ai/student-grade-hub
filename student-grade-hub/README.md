@@ -56,5 +56,7 @@ The `Teacher_Audit` sheet records dated reconciliation and closure checks.
 
 Participation bands are Active (at least 80% submitted), Intermediate active
 (50–79.9%) and Low active (below 50%). Submitted average is kept distinct
-from overall performance with missing work included. Fast/mid/slow learning
-pace remains unclassified until comparable attempts and timing exist.
+from overall performance with missing work included. Performance has three
+levels based on submitted average: High (at least 80), Intermediate (50–79.9)
+and Low (below 50). Students without graded submissions display a dash;
+there is no fourth performance level or learning-speed classification.

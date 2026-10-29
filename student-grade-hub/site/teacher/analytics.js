@@ -16,6 +16,7 @@
     A21:'Fuzzy sets & relations', A22:'Neural networks, fuzzy sets & hybrid systems', A23:'Neural networks, fuzzy sets & hybrid systems',
     A24:'Soft computing — cumulative review', A25:'Neural networks — cumulative', A26:'Fuzzy logic — cumulative'
   };
+  const performanceLevel = average => average === null ? null : average >= 80 ? 'High' : average >= 50 ? 'Intermediate' : 'Low';
   function normalize(raw) {
     const students = records(raw.students).map(s=>({key:String(s['Student Key'] || s.key),name:String(s['Student Name'] || s.name),section:String(s.Section || s.section).replace(/\D/g,''),admission:String(s['Admission No.'] || s.admission || ''),enrollment:String(s['Enrollment No. / PRN'] || s.enrollment || '')}));
     const topicRows = records(raw.topics || []);
@@ -41,20 +42,20 @@
       // Speed needs measured learning intervals or comparable repeated attempts.
       // Grades, submission punctuality and activity ID order do not establish it.
       const engagement=completion>=80?'Active':completion>=50?'Intermediate active':'Low active';
-      const support=mastery===null?'Insufficient evidence':mastery>=80?'Advanced performance':mastery>=50?'Developing performance':'Needs concept support';
+      const level=performanceLevel(mastery);
       const quiz=mean(submitted.filter(r=>r.category==='Quiz').map(r=>r.score));
       const lab=mean(submitted.filter(r=>r.category!=='Quiz').map(r=>r.score));
-      return {...s,rows,topics,submitted:submitted.length,missing:rows.length-submitted.length,zero:submitted.filter(r=>r.score===0).length,late:submitted.filter(r=>r.timing==='Late').length,timingKnown:submitted.filter(r=>r.timing==='Late'||r.timing==='On time').length,completion:round(completion),overall:round(overall||0),mastery:mastery===null?null:round(mastery),engagement,support,quiz:quiz===null?null:round(quiz),lab:lab===null?null:round(lab),learningPace:'Insufficient timing evidence'};
+      return {...s,rows,topics,submitted:submitted.length,missing:rows.length-submitted.length,zero:submitted.filter(r=>r.score===0).length,late:submitted.filter(r=>r.timing==='Late').length,timingKnown:submitted.filter(r=>r.timing==='Late'||r.timing==='On time').length,completion:round(completion),overall:round(overall||0),mastery:mastery===null?null:round(mastery),engagement,performanceLevel:level,quiz:quiz===null?null:round(quiz),lab:lab===null?null:round(lab)};
     });
     return {students:learnerRows,activities,issues,generatedAt:raw.generatedAt||raw.snapshotAt||null,audit:raw.audit||{},queries:records(raw.queries||[]),defaultTopics};
   }
   function select(model, filters={}) {
     return model.students.filter(s=>!filters.section||s.section===filters.section).map(s=>{
-      if(!filters.topic)return s;const rows=s.rows.filter(r=>r.topic===filters.topic);const sub=rows.filter(r=>r.submitted);const completion=rows.length?round(sub.length/rows.length*100):0;const mastery=sub.length?round(mean(sub.map(r=>r.score))):null;return {...s,rows,overall:round(mean(rows.map(r=>r.score))||0),mastery,completion,submitted:sub.length,missing:rows.length-sub.length,zero:sub.filter(r=>r.score===0).length,late:sub.filter(r=>r.timing==='Late').length,engagement:completion>=80?'Active':completion>=50?'Intermediate active':'Low active',support:mastery===null?'Insufficient evidence':mastery>=80?'Advanced performance':mastery>=50?'Developing performance':'Needs concept support',quiz:mean(sub.filter(r=>r.category==='Quiz').map(r=>r.score)),lab:mean(sub.filter(r=>r.category!=='Quiz').map(r=>r.score))};
+      if(!filters.topic)return s;const rows=s.rows.filter(r=>r.topic===filters.topic);const sub=rows.filter(r=>r.submitted);const completion=rows.length?round(sub.length/rows.length*100):0;const mastery=sub.length?round(mean(sub.map(r=>r.score))):null;return {...s,rows,overall:round(mean(rows.map(r=>r.score))||0),mastery,completion,submitted:sub.length,missing:rows.length-sub.length,zero:sub.filter(r=>r.score===0).length,late:sub.filter(r=>r.timing==='Late').length,engagement:completion>=80?'Active':completion>=50?'Intermediate active':'Low active',performanceLevel:performanceLevel(mastery),quiz:mean(sub.filter(r=>r.category==='Quiz').map(r=>r.score)),lab:mean(sub.filter(r=>r.category!=='Quiz').map(r=>r.score))};
     }).filter(s=>!filters.query||[s.name,s.admission,s.enrollment].some(v=>v.toLowerCase().includes(filters.query.toLowerCase())));
   }
   function rank(rows,metric='overall',limit=10) {
     return rows.slice().sort((a,b)=>(b[metric]??-1)-(a[metric]??-1)||b.completion-a.completion||a.name.localeCompare(b.name)).slice(0,limit).map((s,i,all)=>({...s,rank:i&&s[metric]===all[i-1][metric]?null:i+1}));
   }
-  const api={normalize,select,rank,mean,round,defaultTopics};root.GradeAnalytics=api;if(typeof module!=='undefined')module.exports=api;
+  const api={normalize,select,rank,mean,round,performanceLevel,defaultTopics};root.GradeAnalytics=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
