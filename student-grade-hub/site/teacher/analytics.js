@@ -55,7 +55,10 @@
     }).filter(s=>!filters.query||[s.name,s.admission,s.enrollment].some(v=>v.toLowerCase().includes(filters.query.toLowerCase())));
   }
   function rank(rows,metric='overall',limit=10) {
-    return rows.slice().sort((a,b)=>(b[metric]??-1)-(a[metric]??-1)||b.completion-a.completion||a.name.localeCompare(b.name)).slice(0,limit).map((s,i,all)=>({...s,rank:i&&s[metric]===all[i-1][metric]?null:i+1}));
+    const sorted=rows.slice().sort((a,b)=>(b[metric]??-1)-(a[metric]??-1)||a.name.localeCompare(b.name));
+    let previous=null, currentRank=0;
+    const ranked=sorted.map((s,i)=>{if(i===0||s[metric]!==previous)currentRank=i+1;previous=s[metric];return {...s,rank:currentRank};});
+    return ranked.filter(s=>s.rank<=limit);
   }
   const api={normalize,select,rank,mean,round,performanceLevel,defaultTopics};root.GradeAnalytics=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

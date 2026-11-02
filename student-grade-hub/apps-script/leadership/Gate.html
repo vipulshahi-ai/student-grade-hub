@@ -1,0 +1,33 @@
+<style>#leadership-gate{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#f4f6f2;padding:20px}#leadership-gate[hidden]{display:none}#leadership-gate .gate-card{width:min(440px,100%);box-sizing:border-box;background:white;border:1px solid #dce5de;border-radius:16px;padding:32px;color:#173337;box-shadow:0 12px 45px #17333716}#leadership-gate h1{font-size:28px}#leadership-gate p{line-height:1.5;color:#647477}#leadership-gate label{display:block;margin:20px 0 8px;font-weight:700}#leadership-gate input{box-sizing:border-box;width:100%;border:1px solid #bdcfc7;border-radius:8px;padding:12px;font:inherit}#leadership-gate button{margin-top:14px;background:#087f75;color:white;border:0;border-radius:8px;padding:12px 16px;font-weight:700}#leadership-gate #gate-message{min-height:2em;color:#9c3b36}</style>
+<section id="leadership-gate" role="dialog" aria-modal="true" aria-label="Faculty Dashboard"><form class="gate-card" id="leadership-form"><p class="eyebrow">SOFT COMPUTING · FACULTY ANALYTICS</p><h1>Faculty Dashboard</h1><p>Enter the access code shared by the faculty owner.</p><label for="leadership-code">Access code</label><input id="leadership-code" type="password" autocomplete="off" required><button id="leadership-submit" type="submit">Open dashboard</button><p id="gate-message" role="status" aria-live="polite"></p></form></section>
+<script>
+(()=>{'use strict';let token=null,sessionTimer=null;const gate=document.getElementById('leadership-gate'),form=document.getElementById('leadership-form'),input=document.getElementById('leadership-code'),msg=document.getElementById('gate-message'),submit=document.getElementById('leadership-submit');
+const dashboardSections=[...document.body.children].filter(el=>el!==gate&&!['SCRIPT','STYLE'].includes(el.tagName));function setDashboardInert(value){dashboardSections.forEach(el=>{el.inert=value;});}setDashboardInert(true);
+const currentRefresh=document.getElementById('refresh'),refreshButton=currentRefresh.cloneNode(true);currentRefresh.replaceWith(refreshButton);
+const lockButton=document.createElement('button');lockButton.type='button';lockButton.textContent='Lock dashboard';lockButton.hidden=true;document.querySelector('.actions').append(lockButton);
+function showGate(message){token=null;input.hidden=false;input.required=true;document.querySelector('label[for="leadership-code"]').hidden=false;submit.textContent='Open dashboard';clearTimeout(sessionTimer);lockButton.hidden=true;model=null;rawSnapshot=null;document.getElementById('learner-table').replaceChildren();document.getElementById('kpis').replaceChildren();document.getElementById('insight').replaceChildren();document.getElementById('learner-dialog').close();setDashboardInert(true);input.value='';gate.hidden=false;submit.disabled=false;msg.textContent=message||'';input.focus();}
+function loadData(opening=false){
+  if(!token)return showGate('Enter your access code to continue.');
+  const requestToken=token;refreshButton.disabled=true;
+  if(opening){submit.disabled=true;msg.textContent='Access code accepted. Loading dashboard…';}
+  status('Reading the latest Google Sheet…');
+  function failed(e){
+    if(token!==requestToken)return;
+    refreshButton.disabled=false;
+    const detail=e?.message||'The spreadsheet could not be loaded.';
+    if(/session.*(?:expired|revoked)|secure session/i.test(detail)){showGate(detail);return;}
+    if(opening){submit.disabled=false;submit.textContent='Retry loading data';msg.textContent='Access code accepted. Data could not load: '+detail;}
+    else status('Refresh failed. Previously loaded data is still shown. '+detail,true);
+  }
+  google.script.run.withSuccessHandler(raw=>{
+    if(token!==requestToken)return;
+    try{acceptData(raw);}catch(e){failed(e);return;}
+    status('Updated from the Google Sheet.');refreshButton.disabled=false;
+    if(opening){gate.hidden=true;setDashboardInert(false);lockButton.hidden=false;submit.disabled=false;submit.textContent='Open dashboard';msg.textContent='';}
+  }).withFailureHandler(failed).getLeadershipData(requestToken);
+}
+refreshButton.addEventListener('click',()=>loadData(false));
+lockButton.addEventListener('click',()=>{const oldToken=token;showGate('Dashboard locked.');if(oldToken)google.script.run.lockLeadershipSession(oldToken);});
+form.addEventListener('submit',e=>{e.preventDefault();if(token){loadData(true);return;}if(!window.crypto?.getRandomValues){msg.textContent='A secure browser is required.';return;}const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);const candidate=Array.from(bytes,n=>n.toString(16).padStart(2,'0')).join('');const entered=input.value;input.value='';submit.disabled=true;msg.textContent='Checking access…';google.script.run.withSuccessHandler(()=>{token=candidate;input.hidden=true;input.required=false;document.querySelector('label[for="leadership-code"]').hidden=true;sessionTimer=setTimeout(()=>showGate('Session expired. Enter your code again.'),1800000);loadData(true);}).withFailureHandler(error=>{submit.disabled=false;msg.textContent=error.message||'Could not check access.';input.focus();}).authenticateLeadership(entered,candidate);});
+})();
+</script>

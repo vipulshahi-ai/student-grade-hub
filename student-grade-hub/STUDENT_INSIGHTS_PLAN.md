@@ -1,6 +1,6 @@
 # Student insights and leaderboard proposal
 
-The portal homepage is the shared entry point. Student reports remain on `student.html`; the faculty card opens the authenticated faculty workspace. The leaderboard below is proposed, not yet published.
+The portal homepage is the shared entry point. Student reports remain on `student.html`; the faculty card opens the authenticated faculty workspace. The student standings, anonymous leaderboards and topic reflections are implemented. Rankings refresh from the grade workbook whenever a report is requested.
 
 ## Student dashboard additions
 
@@ -20,7 +20,7 @@ Keep the existing activity chart, detailed feedback and multi-select grade query
 
 - Show a student's own section rank prominently, then overall rank. Topic rank follows the selected topic.
 - Offer top 10 overall, top 10 in the student's section, and top 10 for a selected topic.
-- Use aliases for peer entries by default. Show the current student's own entry as "You". Do not show admission numbers, enrollment numbers, teacher comments, missing-activity details or bottom-ranked student lists for peers.
+- Use anonymous aliases for peer entries, as selected by the course owner. Show the current student's own entry as "You". Do not show admission numbers, enrollment numbers, teacher comments, missing-activity details or bottom-ranked student lists for peers.
 - Before publishing identifiable peer scores, agree on whether names are allowed and who can view the board. Start with a private personal-rank panel and aggregate comparisons if public peer listings are not wanted.
 - Rank using the existing equal-weight overall score: normalize each eligible activity to 100, include missing work as zero, then average. Do not rank by submitted-only average: one completed activity should not outrank consistent full participation merely because it scored 100.
 - Equal scores receive equal ranks, using competition ranking (1, 2, 2, 4). Use the same displayed score precision for ties so students are not shown indistinguishable scores with different ranks.

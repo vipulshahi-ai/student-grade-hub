@@ -20,7 +20,10 @@ form.addEventListener('submit', async event => {
   showMessage('Retrieving your report…');
   report.classList.add('hidden');
   try {
-    const data = await jsonp(window.GRADE_HUB_API_URL, { id });
+    const response = await fetch(window.GRADE_HUB_INSIGHTS_URL, {method:'POST',credentials:'omit',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({action:'student',id}),signal:AbortSignal.timeout(45000)});
+    if(!response.ok)throw new Error('The report service is unavailable. Please retry.');
+    const payload=await response.json();
+    const data={ok:payload.ok,report:payload.data,error:payload.error};
     if (!data.ok) throw new Error(data.error || 'The report could not be retrieved.');
     renderReport(data.report);
     showMessage('');
@@ -63,6 +66,7 @@ function renderReport(data) {
   document.querySelector('#doing-well').textContent = data.midSemFeedback?.doingWell || 'No reflection is available yet.';
   document.querySelector('#improve-next').textContent = data.midSemFeedback?.improve || 'No reflection is available yet.';
   renderGradeQuery(data.activities);
+  renderInsights(data.insights);
 }
 
 function renderActivities(activities) {

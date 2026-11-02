@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="View your Soft Computing activity submissions, marks, feedback and performance." />
     <title>Soft Computing · Student Dashboard</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=student-insights-1" />
   </head>
   <body>
     <main class="shell">
@@ -44,6 +44,19 @@
           <article class="metric warning"><span>Not submitted</span><strong id="missing-count"></strong></article>
         </div>
 
+        <section id="student-insights" class="panel hidden" aria-label="Your standing and topic insights">
+          <div class="panel-heading"><div><p class="eyebrow">Your standing</p><h3>See where you stand</h3></div><span id="insights-updated" class="scale"></span></div>
+          <div id="standing-cards" class="standing-cards"></div>
+          <p id="participation-insight" class="muted"></p>
+          <h3>Topic performance</h3><p class="muted">Scores include missing work as zero. Topic rankings compare your section. Mixed-topic assessments remain grouped.</p>
+          <div id="topic-comparisons" class="topic-comparisons"></div>
+          <div class="panel-heading leaderboard-heading"><div><p class="eyebrow">Anonymous leaderboard</p><h3>Top 10 positions, including ties</h3></div></div>
+          <label for="leaderboard-scope">Compare</label><select id="leaderboard-scope"><option value="section">My section</option><option value="overall">Both sections</option><option value="topic">Topic in my section</option></select>
+          <label for="leaderboard-topic">Topic</label><select id="leaderboard-topic" disabled></select>
+          <div id="leaderboard-list" class="leaderboard-list"></div>
+          <p class="muted">Classmates use stable anonymous aliases; your entry is marked You. Section rank is the primary comparison because sections may have different assessments. Each applicable activity is normalised to 100 and weighted equally; missing work counts as zero. Equal displayed scores share a rank.</p>
+        </section>
+
         <section class="panel">
           <div class="panel-heading"><div><p class="eyebrow">Performance</p><h3>Score by activity</h3></div><span class="scale">0–100 scale</span></div>
           <div class="chart-legend" aria-label="Submission timing legend">
@@ -78,7 +91,8 @@
         </section>
       </section>
     </main>
-    <script src="config.js"></script>
-    <script src="app.js"></script>
+    <script src="config.js?v=student-insights-1"></script>
+    <script src="app.js?v=student-insights-1"></script>
+    <script src="student-insights.js?v=1"></script>
   </body>
 </html>
